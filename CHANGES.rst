@@ -2,7 +2,7 @@
 Release notes
 =============
 
-0.6.0 (unreleased)
+0.6.0 (2026-09-30)
 ==================
 
 -   References to Python built-ins, such as ``str``, are now plain text in

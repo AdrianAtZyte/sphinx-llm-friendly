@@ -2,6 +2,15 @@
 Release notes
 =============
 
+0.6.0 (unreleased)
+==================
+
+-   References to Python built-ins, such as ``str``, are now plain text in
+    the Markdown output, to reduce its size.
+
+-   Fixed the build failing on references to the ``genindex`` and ``search``
+    labels.
+
 0.5.1 (2026-09-25)
 ==================
 

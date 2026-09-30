@@ -33,7 +33,7 @@ from ._contexts import (
 )
 from ._escape import escape_markdown_chars
 from ._exclude import is_excluded
-from ._intersphinx import to_markdown_url
+from ._intersphinx import is_builtin_url, to_markdown_url
 
 if TYPE_CHECKING:
     from sphinx.builders.html import StandaloneHTMLBuilder
@@ -567,7 +567,7 @@ class MarkdownTranslator(SphinxTranslator):
     def _label_titles(self) -> dict[tuple[str, str], str]:
         labels = self.builder.env.get_domain("std").labels  # type: ignore[attr-defined]
         return {
-            (docname, label_id): title
+            (docname, label_id): str(title)
             for docname, label_id, title in labels.values()
             if title
         }
@@ -605,7 +605,7 @@ class MarkdownTranslator(SphinxTranslator):
         is_internal = bool(node.get("internal", self.status.default_ref_internal))
         if is_internal:
             url = "" if self._single_file else self._fetch_ref_uri(node)
-        elif _in_signature(node):
+        elif _in_signature(node) or is_builtin_url(node.get("refuri", "")):
             url = ""
         else:
             url = self._fetch_ref_uri(node)

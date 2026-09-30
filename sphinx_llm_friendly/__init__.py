@@ -8,7 +8,7 @@ from sphinx.util.osutil import relative_uri
 
 from ._build import build
 from ._exclude import is_excluded
-from ._intersphinx import find_markdown_sites
+from ._intersphinx import find_builtin_urls, find_markdown_sites
 from ._llms_txt import write_llms_txt
 from ._markdown import write_llms_full_txt, write_markdown
 from ._only import setup_only
@@ -165,6 +165,7 @@ def _on_builder_inited(app: Sphinx) -> None:
     if app.builder.name == "html":
         app.add_js_file(None, body=_COPY_AS_MARKDOWN_BUTTON_JS)
         find_markdown_sites(app)
+        find_builtin_urls(app)
 
 
 def _on_html_page_context(

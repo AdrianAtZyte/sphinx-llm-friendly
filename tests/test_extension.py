@@ -295,6 +295,31 @@ def test_intersphinx_signature(tmp_path: Path) -> None:
     )
 
 
+def test_intersphinx_builtins(tmp_path: Path) -> None:
+    remote = _project(tmp_path / "remote")
+    (remote / "api.rst").write_text(
+        ":orphan:\n\nAPI\n===\n\n.. py:module:: builtins\n\n"
+        ".. py:class:: str\n\n.. py:module:: os\n\n.. py:class:: PathLike\n",
+        encoding="utf-8",
+    )
+    inventory = _build(remote, "html") / "objects.inv"
+    conf = (
+        'extensions.append("sphinx.ext.intersphinx")\n'
+        f'intersphinx_mapping = {{"a": ("https://example.com/", "{inventory}")}}\n'
+    )
+    source = _project(tmp_path, conf)
+    (source / "news.rst").write_text(
+        "News\n====\n\nSee :py:class:`str`, :py:class:`os.PathLike` and :ref:`genindex`.\n",
+        encoding="utf-8",
+    )
+    with mock.patch.object(_intersphinx, "_supports_markdown", return_value=False):
+        output = _build(source, "html")
+    assert (output / "news.md").read_text(encoding="utf-8") == (
+        "# News\n\nSee `str`, [`os.PathLike`](https://example.com/api.html#os.PathLike)"
+        " and [Index](genindex.html).\n"
+    )
+
+
 def test_internal_references(tmp_path: Path) -> None:
     source = _project(tmp_path, "smartquotes = False\n")
     (source / "news.rst").write_text(

@@ -43,7 +43,8 @@ Setup
     The Markdown pages, ``llms.txt`` and ``llms-full.txt`` are written next to
     the HTML pages. In the Markdown output, links to sites from
     ``intersphinx_mapping`` that serve Markdown point to the Markdown version
-    of their pages.
+    of their pages, and references to Python built-ins, such as ``str``, are
+    plain text.
 
 Configuration
 =============

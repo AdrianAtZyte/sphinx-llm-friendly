@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import builtins
 import concurrent.futures
 from http import HTTPStatus
 from typing import TYPE_CHECKING
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
 
 # Set at builder-inited, before parallel write workers are forked.
 _markdown_pages: set[str] = set()
+_builtin_urls: set[str] = set()
 
 
 def _supports_markdown(base_url: str) -> bool:
@@ -69,3 +71,26 @@ def to_markdown_url(url: str) -> str:
     if page not in _markdown_pages or not parts.path.endswith(".html"):
         return url
     return urlunsplit(parts._replace(path=f"{parts.path[:-5]}.md"))
+
+
+def find_builtin_urls(app: Sphinx) -> None:
+    """Find the URLs of Python built-ins in the intersphinx inventories, for
+    :func:`is_builtin_url`.
+    """
+    inventories = getattr(app.env, "intersphinx_named_inventory", {})
+    _builtin_urls.clear()
+    _builtin_urls.update(
+        getattr(item, "uri", None) or item[2]
+        for inventory in inventories.values()
+        if "builtins" in inventory.get("py:module", {})
+        for role in ("py:class", "py:data", "py:exception", "py:function")
+        for name, item in inventory.get(role, {}).items()
+        if name.removeprefix("builtins.") in vars(builtins)
+    )
+
+
+def is_builtin_url(url: str) -> bool:
+    """Return whether *url* points to the documentation of a Python built-in,
+    as found by :func:`find_builtin_urls`.
+    """
+    return url in _builtin_urls

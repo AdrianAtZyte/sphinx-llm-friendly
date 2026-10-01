@@ -81,8 +81,6 @@ def test_llms_txt_options(tmp_path: Path) -> None:
         "- [Project](/en/latest/index.md)\n"
         "- [Page 1](/en/latest/guide/page1.md)\n"
     )
-    llms_full = (output / "llms-full.txt").read_text(encoding="utf-8")
-    assert "Source: /en/latest/index.md" in llms_full
 
 
 def _env(**kwargs: Any) -> BuildEnvironment:
@@ -138,9 +136,6 @@ def test_markdown(tmp_path: Path) -> None:
     assert "Hidden" not in page2
     assert "Hidden" in (output / "guide" / "page2.html").read_text(encoding="utf-8")
     assert not (output / "news.md").exists()
-    llms_full = (output / "llms-full.txt").read_text(encoding="utf-8")
-    assert "Source: /guide/page2.md" in llms_full
-    assert "Source: /news.md" not in llms_full
 
 
 def test_sphinx_design(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
@@ -204,22 +199,6 @@ def test_youtube(tmp_path: Path) -> None:
     )
 
 
-@pytest.mark.parametrize(("max_tokens", "warns"), [(1, True), (None, False)])
-def test_llms_full_txt_max_tokens(
-    tmp_path: Path,
-    capsys: pytest.CaptureFixture[str],
-    max_tokens: int | None,
-    warns: bool,
-) -> None:
-    conf = f"llm_friendly_llms_full_txt_max_tokens = {max_tokens}\n"
-    output = _build(_project(tmp_path, conf), "html")
-    assert (output / "llms-full.txt").exists()
-    assert (
-        "over the llm_friendly_llms_full_txt_max_tokens limit of 1."
-        in capsys.readouterr().err
-    ) is warns
-
-
 def test_only(tmp_path: Path) -> None:
     source = _project(tmp_path)
     (source / "news.rst").write_text(
@@ -238,16 +217,6 @@ def test_only(tmp_path: Path) -> None:
     assert "Markdown." not in html
     assert "Both." in html
     assert "markdown" not in (output / "searchindex.js").read_text(encoding="utf-8")
-
-
-def test_llms_full_txt_exclude(tmp_path: Path) -> None:
-    conf = 'llm_friendly_llms_full_txt_exclude = ["guide/page1*"]\n'
-    output = _build(_project(tmp_path, conf), "html")
-    llms_full = (output / "llms-full.txt").read_text(encoding="utf-8")
-    assert "Source: /index.md" in llms_full
-    assert "Source: /guide/page1.md" not in llms_full
-    assert (output / "guide" / "page1.md").exists()
-    assert "guide/page1.md" in (output / "llms.txt").read_text(encoding="utf-8")
 
 
 def test_intersphinx(tmp_path: Path) -> None:
@@ -348,8 +317,6 @@ def test_internal_references(tmp_path: Path) -> None:
         '["qux"](guide/page1.md "A \\"quoted\\" \\\\ heading") and '
         "[numbered](guide/page1.md)."
     ) in news
-    llms_full = (output / "llms-full.txt").read_text(encoding="utf-8")
-    assert "See foo (see Target), target, bar (see Section)," in llms_full
 
 
 def test_build(tmp_path: Path) -> None:
@@ -357,4 +324,4 @@ def test_build(tmp_path: Path) -> None:
         output = build(_project(tmp_path), tmp_path / "build")
     assert output == tmp_path / "build" / "all"
     assert (output / "guide" / "page1.md").exists()
-    assert (output / "llms-full.txt").exists()
+    assert (output / "llms.txt").exists()

@@ -10,8 +10,6 @@ LLM-friendly:
 -   `llms.txt <https://llmstxt.org/>`_, with a link to the Markdown version of
     every page.
 
--   ``llms-full.txt``, with the Markdown version of all pages.
-
 -   HTML pages point to their Markdown version with a ``<link
     rel="alternate" type="text/markdown">`` tag, and get a button to copy
     their Markdown version.
@@ -40,11 +38,10 @@ Setup
 
         sphinx-build -b html docs docs/_build/html
 
-    The Markdown pages, ``llms.txt`` and ``llms-full.txt`` are written next to
-    the HTML pages. In the Markdown output, links to sites from
-    ``intersphinx_mapping`` that serve Markdown point to the Markdown version
-    of their pages, and references to Python built-ins, such as ``str``, are
-    plain text.
+    The Markdown pages and ``llms.txt`` are written next to the HTML pages. In
+    the Markdown output, links to sites from ``intersphinx_mapping`` that serve
+    Markdown point to the Markdown version of their pages, and references to
+    Python built-ins, such as ``str``, are plain text.
 
 Configuration
 =============
@@ -52,16 +49,6 @@ Configuration
 ``llm_friendly_exclude``
     List of patterns, with the syntax of ``exclude_patterns``, of documents to
     leave out of the Markdown output and ``llms.txt``. Default: ``[]``.
-
-``llm_friendly_llms_full_txt_exclude``
-    List of patterns, with the syntax of ``exclude_patterns``, of documents to
-    leave out of ``llms-full.txt`` only. Default: ``[]``.
-
-``llm_friendly_llms_full_txt_max_tokens``
-    Maximum number of tokens of ``llms-full.txt``, counted with the
-    ``cl100k_base`` encoding of
-    `tiktoken <https://github.com/openai/tiktoken>`_. Exceeding it logs a
-    warning. ``None`` lifts the limit. Default: ``200_000``.
 
 ``llm_friendly_llms_txt_summary``
     Summary for ``llms.txt``. Default: the first paragraph of the root

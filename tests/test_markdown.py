@@ -25,31 +25,10 @@ def _markdown_files(path: Path) -> dict[str, str]:
 @pytest.mark.skipif(
     sphinx.version_info < (9,), reason="Sphinx 9 changed the toctree of index.md"
 )
-def test_markdown_expected_output(tmp_path: Path) -> None:
-    run_sphinx(tmp_path, "-t", "Partners")
+@pytest.mark.parametrize("flags", [(), ("-j", "2")])
+def test_markdown_expected_output(tmp_path: Path, flags: tuple[str, ...]) -> None:
+    run_sphinx(tmp_path, "-t", "Partners", *flags)
     assert _markdown_files(tmp_path) == _markdown_files(EXPECTED_PATH / "llm_markdown")
-
-
-def test_llms_full_txt_expected_output(tmp_path: Path) -> None:
-    run_sphinx(tmp_path, "-t", "Partners")
-    actual = (tmp_path / "llms-full.txt").read_text(encoding="utf-8")
-    assert actual == (EXPECTED_PATH / "llms-full.txt").read_text(encoding="utf-8")
-
-
-def test_rebuild(tmp_path: Path) -> None:
-    run_sphinx(tmp_path, "-t", "Partners")
-    (tmp_path / "blocks.md").unlink()
-    (SOURCE_PATH / "index.rst").touch()
-    run_sphinx(tmp_path, "-t", "Partners")
-    assert not (tmp_path / "blocks.md").exists()
-    actual = (tmp_path / "llms-full.txt").read_text(encoding="utf-8")
-    assert actual == (EXPECTED_PATH / "llms-full.txt").read_text(encoding="utf-8")
-
-
-def test_parallel(tmp_path: Path) -> None:
-    run_sphinx(tmp_path, "-t", "Partners", "-j", "2")
-    actual = (tmp_path / "llms-full.txt").read_text(encoding="utf-8")
-    assert actual == (EXPECTED_PATH / "llms-full.txt").read_text(encoding="utf-8")
 
 
 def test_download_references(tmp_path: Path) -> None:

@@ -10,7 +10,7 @@ from ._build import build
 from ._exclude import is_excluded
 from ._intersphinx import find_builtin_urls, find_markdown_sites
 from ._llms_txt import write_llms_txt
-from ._markdown import write_llms_full_txt, write_markdown
+from ._markdown import write_markdown
 from ._only import setup_only
 
 if TYPE_CHECKING:
@@ -189,20 +189,10 @@ def _on_html_page_context(
 def _on_build_finished(app: Sphinx, exception: Exception | None) -> None:
     if exception is None and app.builder.name == "html":
         write_llms_txt(app)
-        write_llms_full_txt(app)
 
 
 def setup(app: Sphinx) -> ExtensionMetadata:
     app.add_config_value("llm_friendly_exclude", [], "html", types=frozenset({list}))
-    app.add_config_value(
-        "llm_friendly_llms_full_txt_exclude", [], "", types=frozenset({list})
-    )
-    app.add_config_value(
-        "llm_friendly_llms_full_txt_max_tokens",
-        200_000,
-        "",
-        types=frozenset({int, type(None)}),
-    )
     app.add_config_value(
         "llm_friendly_llms_txt_summary",
         None,

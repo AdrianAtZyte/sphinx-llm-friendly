@@ -164,13 +164,9 @@ class MarkdownTranslator(SphinxTranslator):
         self,
         document: nodes.document,
         builder: StandaloneHTMLBuilder,
-        single_file: bool = False,
     ):
         super().__init__(document, builder)
         self.builder: StandaloneHTMLBuilder = builder
-        # In llms-full.txt, the documentation title is the only H1, internal
-        # links become plain text, and local files are relative to the root.
-        self._single_file = single_file
         # Warn only once per writer about unsupported elements
         self._warned: set[str] = set()
 
@@ -187,7 +183,7 @@ class MarkdownTranslator(SphinxTranslator):
         self._ctx_queue.append(ctx)
 
     def _title_level(self, base_level: int) -> int:
-        return min(6, max(1, base_level + int(self._single_file)))
+        return min(6, max(1, base_level))
 
     def _pop_context(self, _node: nodes.Node | None = None, count: int = 1) -> None:
         for _ in range(count):
@@ -349,8 +345,6 @@ class MarkdownTranslator(SphinxTranslator):
     def visit_image(self, node: nodes.Element) -> None:
         """Image directive."""
         uri = node["uri"]
-        if self._single_file and uri.startswith(f"{self.builder.imgpath}/"):
-            uri = posixpath.join("_images", posixpath.basename(uri))
         alt = node.attributes.get("alt", "image")
         # We don't need to add EOL before/after the image.
         # It will be handled by the visit/depart handlers of the paragraph.
@@ -603,9 +597,9 @@ class MarkdownTranslator(SphinxTranslator):
             raise nodes.SkipNode
 
         is_internal = bool(node.get("internal", self.status.default_ref_internal))
-        if is_internal:
-            url = "" if self._single_file else self._fetch_ref_uri(node)
-        elif _in_signature(node) or is_builtin_url(node.get("refuri", "")):
+        if not is_internal and (
+            _in_signature(node) or is_builtin_url(node.get("refuri", ""))
+        ):
             url = ""
         else:
             url = self._fetch_ref_uri(node)
@@ -634,17 +628,12 @@ class MarkdownTranslator(SphinxTranslator):
         # For readable internal targets, `filename` is the registered, hashed
         # destination. Link to the copied file relative to the current output page.
         elif "filename" in node:
-            downloads = "_downloads" if self._single_file else self.builder.dlpath
-            target = posixpath.join(downloads, node["filename"])
+            target = posixpath.join(self.builder.dlpath, node["filename"])
         # If Sphinx could not register the internal file, only its original
         # `reftarget` remains.
         else:
             target = node.get("reftarget", "")
         self._push_context(WrappedContext("[", f"]({target})"))
-
-    def visit_compound(self, node: nodes.Element) -> None:
-        if self._single_file and "toctree-wrapper" in node["classes"]:
-            raise nodes.SkipNode
 
     def visit_youtube(self, node: nodes.Element) -> None:
         """sphinxcontrib-youtube video."""
@@ -753,11 +742,7 @@ class MarkdownTranslator(SphinxTranslator):
         if self.status.escape_text:
             title = escape_markdown_chars(title)
 
-        is_internal_href = href and not href.startswith(("http://", "https://"))
-
-        if self._single_file and is_internal_href:
-            self.add(f"{('#' * level)} {title}", prefix_eol=1, suffix_eol=1)
-        elif href:
+        if href:
             self.add(f"{('#' * level)} [{title}]({href})", prefix_eol=1, suffix_eol=1)
         else:
             self.add(f"{('#' * level)} {title}", prefix_eol=1, suffix_eol=1)
